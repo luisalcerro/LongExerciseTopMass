@@ -25,9 +25,9 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
         #'njets':ROOT.TH1F('???','???',???,???,???),
         
         #Add new histogram for electron pt
-
+	'e_pt'	:ROOT.TH1F('e_pt',';electron pt [GeV]; electrons',40,0.,400.),
         #Add new histogram for muon pt
-
+	'mu_pt'	:ROOT.TH1F('mu_pt',';muon pt [GeV]; muons',40,0.,400.),
         }
     for key in histos:
         histos[key].Sumw2()
@@ -44,6 +44,7 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
         #require at least two jets
         nJets, nBtags, nLeptons = 0, 0, 0
         taggedJetsP4=[]
+	leptonsP4=[]
         for ij in xrange(0,tree.nJet):
 
             #get the kinematics and select the jet
@@ -53,6 +54,8 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
 
             #count selected jet
             nJets +=1
+
+	    
 
             #save P4 for b-tagged jet
             if tree.Jet_CombIVF[ij]>0.8484: # medium cut
@@ -71,7 +74,8 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
 
             #count selected leptons                    
             nLeptons +=1
-
+	    
+	    leptonsP4.append(lp4)
         if nLeptons<2 : continue
 
         #generator level weight only for MC
@@ -81,13 +85,19 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
 
         #ready to fill the histograms
         #fill nvtx plot
-        #histos['nvtx'].Fill(???,???)
+        histos['nvtx'].Fill(tree.nPV,evWgt)
         
         #fill nbtag plot
-        #histos['nbtags'].Fill(???,???)
+        histos['nbtags'].Fill(nBtags,evWgt)
 
         #fill electron and muon plots
-        #
+        for j in xrange(0,len(leptonsP4)):
+	    if j>1 : break
+	    Lep_id=abs(tree.Lepton_id[j])
+            if abs(Lep_id)==11:
+		histos['e_pt'].Fill(leptonsP4[j].Pt())
+	    if abs(Lep_id)==13:
+		histos['mu_pt'].Fill(leptonsP4[j].Pt())
 
         #use up to two leading b-tagged jets
         for ij in xrange(0,len(taggedJetsP4)):
