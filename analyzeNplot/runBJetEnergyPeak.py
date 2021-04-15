@@ -22,13 +22,23 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
         'nbtags':ROOT.TH1F('nbtags',';b-tag multiplicity; Events',5,0,5),
         
         #Add new histogram for number of jets
-        #'njets':ROOT.TH1F('???','???',???,???,???),
+        'njets':ROOT.TH1F('njets',';Jet multiplicity;Events',5,0,5),
+
+	#Add new histogram for number of leptons
+	'nleptons':ROOT.TH1F('nleptons',';Lepton multiplicity; Events',5,0,5),
         
         #Add new histogram for electron pt
 	'e_pt'	:ROOT.TH1F('e_pt',';electron pt [GeV]; electrons',40,0.,400.),
-        #Add new histogram for muon pt
+        
+	#Add new histogram for muon pt
 	'mu_pt'	:ROOT.TH1F('mu_pt',';muon pt [GeV]; muons',40,0.,400.),
-        }
+        
+	#Add new histogram for electron eta
+	'e_eta' :ROOT.TH1F('e_eta',';#eta; electrons',50,-3,3),
+
+	#Add new histogram for muon eta
+        'mu_eta':ROOT.TH1F('mu_eta',';#eta; muons',50,-3,3) 
+	}
     for key in histos:
         histos[key].Sumw2()
         histos[key].SetDirectory(0)
@@ -86,6 +96,12 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
         #ready to fill the histograms
         #fill nvtx plot
         histos['nvtx'].Fill(tree.nPV,evWgt)
+	
+	#fill nleptons plot
+	histos['nleptons'].Fill(nLeptons,evWgt)
+	
+	#fill njets plot
+	histos['njets'].Fill(nJets,evWgt)
         
         #fill nbtag plot
         histos['nbtags'].Fill(nBtags,evWgt)
@@ -95,10 +111,11 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
 	    if j>1 : break
 	    Lep_id=abs(tree.Lepton_id[j])
             if abs(Lep_id)==11:
-		histos['e_pt'].Fill(leptonsP4[j].Pt())
+		histos['e_pt'].Fill(leptonsP4[j].Pt(),evWgt)
+		histos['e_eta'].Fill(leptonsP4[j].Eta(),evWgt)
 	    if abs(Lep_id)==13:
-		histos['mu_pt'].Fill(leptonsP4[j].Pt())
-
+		histos['mu_pt'].Fill(leptonsP4[j].Pt(),evWgt)
+		histos['mu_eta'].Fill(leptonsP4[j].Pt(),evWgt)
         #use up to two leading b-tagged jets
         for ij in xrange(0,len(taggedJetsP4)):
             if ij>1 : break
