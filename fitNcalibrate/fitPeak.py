@@ -125,7 +125,7 @@ def gPeak(h=None,inDir=None,isData=None,lumi=None):
     caption2.SetTextSize(0.05)
     caption2.SetTextFont(42)
     caption2.SetNDC()  
-    caption2.DrawLatex(0.35,0.44,'Uncalibrated Measurement')
+    caption2.DrawLatex(0.35,0.44,'Calibrated Measurement')
     caption2.DrawLatex(0.35,0.39,'<E_{b}> = (%4.2f #pm %4.2f) GeV'%(Ereco,Err))
     ## CMS labels
     label1 = TLatex()
@@ -155,7 +155,7 @@ def gPeak(h=None,inDir=None,isData=None,lumi=None):
     hPull.Draw("e")
 
     #save and delete
-    sName = inDir+"/fit_";
+    sName = inDir+"/fit_Cal_";
     if isData is True:
         sName = sName+"Data";
     else: 
@@ -214,13 +214,24 @@ def main():
            if not os.path.isdir(opt.inDir):
                os.mkdir(opt.inDir)
 
+           ##GENERATE PSEUDO EXPERIMENTS 
+           random3 = TRandom3()
+           random3.SetSeed(1)
+           ### NUMBER OF PSEUDO EXPERIMENTS
+           NPExp = 5000
+           for j in range(0, NPExp):
+               histoCal = histo.Clone()
+               for k in range(0,histo.GetNbinsX()):
+                   y = histo.GetBinContent(k)
+                   x = histo.GetXaxis().GetBinCenter(k)
+                   fluctuation = random3.PoissonD(y*math.exp(x))/math.exp(x)
+                   histoCal.SetBinContent(k,fluctuation)
+               
            # Calculate the energy peak position in the big MC sample
-           Eb,DEb = gPeak(h=histo,inDir=opt.inDir,isData=opt.isData,lumi=opt.lumi)
+           Eb,DEb = gPeak(h=histoCal,inDir=opt.inDir,isData=opt.isData,lumi=opt.lumi)
            print "<E_{b}> = (%3.2f #pm %3.2f) GeV" % (Eb,DEb)
 
            res.Close()
                
 if __name__ == "__main__":
     sys.exit(main())
-
-
